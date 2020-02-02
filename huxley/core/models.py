@@ -14,8 +14,43 @@ from django.core.mail import send_mail
 from django.db import models, transaction
 from django.db.models.signals import post_init, post_save, pre_delete, pre_save
 from django.utils import timezone
+from django.db.models import SET_NULL
 
 from huxley.core.constants import ContactGender, ContactType, ProgramTypes
+
+class Room(models.Model):
+    building_name = models.CharField(max_length=64)
+
+    '''
+    These should be fields for positive integer values.
+    ONLY provide a default value for number_of_seats.
+    Google Django model field types for available options.
+    '''
+    room_number = models.IntegerField()
+    number_of_seats = models.IntegerField(default=20)
+
+
+    '''
+    This returns a unique identifier for the model.
+    Have it return a string in the format BuildingName RoomNumber.
+    '''
+    def __str__(self):
+        return str(room_number)+ " "+str(number_of_seats)
+
+    class Meta:
+        db_table = u'room'
+        ordering = ['building_name', 'room_number']
+        unique_together = ('building_name', 'room_number')
+
+
+class RoomComment(models.Model):
+    """Your code here"""
+    room = models.ForeignKey(Room, on_delete=models.SET_NULL, null=True)
+    comment = models.CharField(max_length=50000)
+    rating = models.IntegerField()
+
+    class Meta:
+        db_table = u'room_comment'
 
 
 class Conference(models.Model):
@@ -107,7 +142,7 @@ class Committee(models.Model):
     delegation_size = models.PositiveSmallIntegerField(default=2)
     special = models.BooleanField(default=False)
     rubric = models.OneToOneField(Rubric, on_delete=models.SET_NULL, blank=True, null=True)
-    room = models.ForeignKey(Room, on_delete=SET_NULL)
+    room = models.ForeignKey(Room, on_delete=models.SET_NULL, null=True)
 
     @classmethod
     def create_rubric(cls, **kwargs):
@@ -667,37 +702,3 @@ class SecretariatMember(models.Model):
 
     def __str__(self):
         return self.name
-
-class Room(models.Model):
-    building_name = models.CharField(max_length=64)
-
-    '''
-    These should be fields for positive integer values.
-    ONLY provide a default value for number_of_seats.
-    Google Django model field types for available options.
-    '''
-    room_number = models.IntegerField()
-    number_of_seats = models.IntegerField(default=20)
-
-
-    '''
-    This returns a unique identifier for the model.
-    Have it return a string in the format BuildingName RoomNumber.
-    '''
-    def __str__(self):
-        return str(room_number)+ " "+str(number_of_seats)
-
-    class Meta:
-        db_table = u'room'
-        ordering = ['building_name', 'room_number']
-        unique_together = ('building_name', 'room_number')
-
-
-class RoomComment(models.Model):
-    """Your code here"""
-    room = models.ForeignKey(Room, on_delete=models.SET_NULL)
-    comment = models.CharField(max_length=None)
-    rating = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(10)])
-
-    class Meta:
-        db_table = u'room_comment'
