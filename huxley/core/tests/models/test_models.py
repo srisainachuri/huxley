@@ -228,6 +228,52 @@ class DelegateTest(TestCase):
             school=school,
             assignment=assignment)
 
+    def test_unique(self):
+        """
+        Here we want to test three cases:
+        1. That if two delegates from the same committee have assigned seats, they cannot have the same seat
+        2. That if two delegates from different committees have assigned seats, they can have the same seat
+        3. That two delegates can both have unassigned seats
+        """
+
+        delegate_1 = Delegate.objects.create(name='delegate1',
+                                             school=self.school,
+                                             assignment=self.assignment1,
+                                             seat_number=1)
+
+        # 1: Here, we are verifying that an error is raised
+        self.assertRaises(
+            ValidationError,
+            Delegate.objects.create,
+            name='bad_delegate',
+            school=self.school,
+            assignment=self.assignment1,
+            seat_number=1)
+
+        # 2: Here, we verify that the values are equal. If an error is raised, it will fail the test case.
+        delegate_2 = Delegate.objects.create(name='delegate2',
+                                             school=self.school,
+                                             assignment=self.assignment2,
+                                             seat_number=1)
+        self.assertEquals(delegate_1.seat_number, delegate_2.seat_number)
+
+        # 3: Create two delegates with default seat numbers.
+        #    Assign them both to self.school and self.assignment1
+        #    Name them whatever you want.
+        delegate_3 = Delegate.objects.create(name='delegate3',
+                                             school=self.school,
+                                             assignment=self.assignment1)
+
+        delegate_4 = Delegate.objects.create(name='delegate4',
+                                             school=self.school,
+                                             assignment=self.assignment1)
+
+        # Check that delegate_3 and delegate_4 have the same seat number,
+        # and that it is the default unassigned seat number
+        self.assertEquals(delegate_3.seat_number, delegate_4.seat_number)
+        self.assertEquals(delegate_3.seat_number, 0)
+
+
 
 class RegistrationTest(TestCase):
 
@@ -357,3 +403,46 @@ class SecretariatMemberTest(TestCase):
 
     def test_str(self):
         self.assertTrue(self.member.__str__() == 'Tibbalidoo')
+
+class RoomTest(TestCase):
+    def setUp(self):
+        self.room = Room.objects.create(building_name='Dwinelle', room_number=55)
+
+    def test_default_values(self):
+        """
+        Fill in where indicated with what the default values should be.
+        """
+        self.assertEquals(self.room.number_of_seats, 20)
+
+    def test_str(self):
+        """
+        FIll in what the str method you defiend earlier should return.
+        """
+        self.assertEquals(self.room.__str__(), str(self.room_number)+" "+str(self.number_of_seats))
+
+    def test_unique(self):
+        """
+        Two rooms cannot have the same room number and building.
+        In the setUp method above a room was already created.
+        Check that a new room cannot have the same building and room number as it.
+        """
+        self.assertRaises(
+            ValidationError,
+            Room.objects.create,
+            building_name=5,
+            room_number=5
+            )
+
+
+class RoomCommentTest(TestCase):
+    def setUp(self):
+        self.room = Room.objects.create(building_name='Dwinelle', room_number=55)
+        self.comment= RoomComment.objects.create(room=self.room, rating=5)
+
+    def test_default_fields(self):
+        """Your code here"""
+        self.assertEquals(self.comment.rating, 5)
+
+    def test_str(self):
+        """Your code here"""
+        self.assertEquals(self.comment.__str__(), str(self.comment.comment)+ " "+str(self.comment.rating))

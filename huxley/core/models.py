@@ -46,9 +46,12 @@ class Room(models.Model):
 class RoomComment(models.Model):
     """Your code here"""
     room = models.ForeignKey(Room, on_delete=models.SET_NULL, null=True)
-    comment = models.CharField(max_length=50000)
+    comment = models.CharField(max_length=50000, default='')
     rating = models.IntegerField()
 
+    def __str__(self):
+        return str(comment)+ " "+str(rating)
+    
     class Meta:
         db_table = u'room_comment'
 
