@@ -647,10 +647,15 @@ class Delegate(models.Model):
 
         super(Delegate, self).save(*args, **kwargs)
 
+    # No clue if this is right
+    def validate_unique(self):
+        if (self.seat!=0):
+            Models.validate_unique(self)
+
     class Meta:
         db_table = u'delegate'
         ordering = ['school']
-        unique_together =
+        unique_together = ['seat']
 
 
 class SecretariatMember(models.Model):
@@ -690,4 +695,9 @@ class Room(models.Model):
 
 class RoomComment(models.Model):
     """Your code here"""
-    pass # Delete this
+    room = models.ForeignKey(Room, on_delete=models.SET_NULL)
+    comment = models.CharField(max_length=None)
+    rating = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(10)])
+
+    class Meta:
+        db_table = u'room_comment'
